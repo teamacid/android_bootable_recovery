@@ -34,7 +34,7 @@ ifdef I_AM_KOUSH
 RECOVERY_NAME := ClockworkMod Recovery
 LOCAL_CFLAGS += -DI_AM_KOUSH
 else
-RECOVERY_NAME := CWM-based Recovery
+RECOVERY_NAME := CWM-based Voodoo Lagfix Recovery
 endif
 
 RECOVERY_VERSION := $(RECOVERY_NAME) v5.0.2.8

@@ -34,6 +34,9 @@ show_choose_zip_menu();
 int
 install_zip(const char* packagefilepath);
 
+void
+show_voodoo_menu();
+
 int
 __system(const char *command);
 
