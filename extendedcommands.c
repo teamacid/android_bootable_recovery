@@ -163,7 +163,7 @@ char** gather_files(const char* directory, const char* fileExtensionOrDirectory,
         return NULL;
     }
 
-    int extension_length = 0;
+    unsigned int extension_length = 0;
     if (fileExtensionOrDirectory != NULL)
         extension_length = strlen(fileExtensionOrDirectory);
 
@@ -247,7 +247,7 @@ char** gather_files(const char* directory, const char* fileExtensionOrDirectory,
 }
 
 // pass in NULL for fileExtensionOrDirectory and you will get a directory chooser
-char* choose_file_menu(const char* directory, const char* fileExtensionOrDirectory, const char* headers[])
+char* choose_file_menu(const char* directory, const char* fileExtensionOrDirectory, char* headers[])
 {
     char path[PATH_MAX] = "";
     DIR *dir;
@@ -285,7 +285,7 @@ char* choose_file_menu(const char* directory, const char* fileExtensionOrDirecto
 
         for (;;)
         {
-            int chosen_item = get_menu_selection(headers, list, 0, 0);
+            int chosen_item = get_menu_selection((char **)headers, list, 0, 0);
             if (chosen_item == GO_BACK)
                 break;
             static char ret[PATH_MAX];
@@ -366,14 +366,12 @@ void show_mount_usb_storage_menu()
     Volume *vol = volume_for_path("/sdcard");
     if ((fd = open(BOARD_UMS_LUNFILE, O_WRONLY)) < 0) {
         LOGE("Unable to open ums lunfile (%s)", strerror(errno));
-        return -1;
     }
 
     if ((write(fd, vol->device, strlen(vol->device)) < 0) &&
         (!vol->device2 || (write(fd, vol->device, strlen(vol->device2)) < 0))) {
         LOGE("Unable to write to ums lunfile (%s)", strerror(errno));
         close(fd);
-        return -1;
     }
     static char* headers[] = {  "USB Mass Storage device",
                                 "Leaving this menu unmount",
@@ -393,18 +391,16 @@ void show_mount_usb_storage_menu()
 
     if ((fd = open(BOARD_UMS_LUNFILE, O_WRONLY)) < 0) {
         LOGE("Unable to open ums lunfile (%s)", strerror(errno));
-        return -1;
     }
 
     char ch = 0;
     if (write(fd, &ch, 1) < 0) {
         LOGE("Unable to write to ums lunfile (%s)", strerror(errno));
         close(fd);
-        return -1;
     }
 }
 
-int confirm_selection(const char* title, const char* confirm)
+int confirm_selection(char* title, char* confirm)
 {
     struct stat info;
     if (0 == stat("/sdcard/clockworkmod/.no_confirm", &info))
@@ -629,7 +625,7 @@ void show_partition_menu()
     num_volumes = get_num_volumes();
     device_volumes = get_device_volumes();
 
-    string options[255];
+    static char* options[255];
 
     if(!device_volumes)
 		return;
@@ -644,19 +640,19 @@ void show_partition_menu()
 			Volume* v = &device_volumes[i];
 			if(strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) != 0 && strcmp("emmc", v->fs_type) != 0 && strcmp("bml", v->fs_type) != 0)
 			{
-				sprintf(&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
-				sprintf(&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
+				sprintf((char *)&mount_menue[mountable_volumes].mount, "mount %s", v->mount_point);
+				sprintf((char *)&mount_menue[mountable_volumes].unmount, "unmount %s", v->mount_point);
 				mount_menue[mountable_volumes].v = &device_volumes[i];
 				++mountable_volumes;
-				if (is_safe_to_format(v->mount_point)) {
-					sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
+				if (is_safe_to_format((char *)v->mount_point)) {
+					sprintf((char *)&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
 					format_menue[formatable_volumes].v = &device_volumes[i];
 					++formatable_volumes;
 				}
 		    }
-		    else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format(v->mount_point))
+		    else if (strcmp("ramdisk", v->fs_type) != 0 && strcmp("mtd", v->fs_type) == 0 && is_safe_to_format((char *)v->mount_point))
 		    {
-				sprintf(&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
+				sprintf((char *)&format_menue[formatable_volumes].txt, "format %s", v->mount_point);
 				format_menue[formatable_volumes].v = &device_volumes[i];
 				++formatable_volumes;
 			}
@@ -690,7 +686,7 @@ void show_partition_menu()
         options[mountable_volumes+formatable_volumes] = "mount USB storage";
         options[mountable_volumes+formatable_volumes + 1] = NULL;
 
-        int chosen_item = get_menu_selection(headers, &options, 0, 0);
+        int chosen_item = get_menu_selection(headers, options, 0, 0);
         if (chosen_item == GO_BACK)
             break;
         if (chosen_item == (mountable_volumes+formatable_volumes))
@@ -1108,7 +1104,7 @@ void show_voodoo_menu() {
 
     for (;;)
     {
-        FILE* f = fopen("/voodoo/run/lagfix_enabled","r");
+        FILE* f = fopen("/sdcard/Voodoo/lagfix_enabled","r");
         if (f==NULL) {
             ui_print("\nVoodoo lagfix is actually: disabled\n");
         } else {

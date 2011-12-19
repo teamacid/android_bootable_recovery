@@ -60,6 +60,7 @@ int extendedcommand_file_exists();
 
 void show_install_update_menu();
 
-int confirm_selection(const char* title, const char* confirm);
+int confirm_selection(char* title, char* confirm);
 
 int run_and_remove_extendedcommand();
+int is_path_mounted(const char* path);
